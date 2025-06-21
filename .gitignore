@@ -1,0 +1,15 @@
+# Docker related
+.env
+.DS_Store
+
+# Data directory
+data/
+
+# Logs
+*.log
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
