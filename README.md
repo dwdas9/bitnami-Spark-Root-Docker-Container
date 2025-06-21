@@ -2,6 +2,44 @@
 
 This project creates a Bitnami Spark Docker image that runs with root permissions. By default, Bitnami images are non-root for security purposes, but in some development and testing scenarios, a root-enabled image may be necessary.
 
+## Quick Start Guide
+
+### What's Included
+- Spark cluster with 1 master and 2 worker nodes
+- Root access enabled on all containers
+- Example Spark applications in Python and Scala
+
+### Build and Run
+```bash
+# Build the image
+./build.sh  # On macOS/Linux
+# OR
+./build.ps1 # On Windows
+
+# Start the cluster
+docker-compose up -d
+```
+
+### Access Information
+- **Spark Web UI**: http://localhost:8080
+- **Spark Master**: spark://spark-master:7077
+- **Worker UIs**: http://localhost:8081, http://localhost:8082
+- **Root Access**: All containers run as root user (no password required)
+
+### Run an Example
+```bash
+# Enter the master container
+docker exec -it spark-master bash
+
+# Run the Python example
+spark-submit --master spark://spark-master:7077 /opt/bitnami/spark/examples/pyspark_example.py
+```
+
+### Stop the Cluster
+```bash
+docker-compose down
+```
+
 ## Contents
 
 - `Dockerfile`: Creates a Spark image based on Bitnami's Spark image, but with root user permissions
