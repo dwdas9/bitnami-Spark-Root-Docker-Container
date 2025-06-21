@@ -2,14 +2,40 @@
 
 This project creates a Bitnami Spark Docker image that runs with root permissions. By default, Bitnami images are non-root for security purposes, but in some development and testing scenarios, a root-enabled image may be necessary.
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Quick Start Guide](#quick-start-guide)
+3. [Prerequisites](#prerequisites)
+4. [Setup Instructions](#setup-instructions)
+   - [Building the Image](#building-the-image)
+   - [Running the Cluster](#running-the-cluster)
+   - [Accessing the Interfaces](#accessing-the-interfaces)
+5. [Using the Cluster](#using-the-cluster)
+   - [Running Spark Jobs](#running-spark-jobs)
+   - [Running Example Applications](#running-example-applications)
+6. [Configuration Options](#configuration-options)
+7. [Troubleshooting](#troubleshooting)
+8. [Notes and Security Considerations](#notes-and-security-considerations)
+9. [Performance Tuning](#performance-tuning)
+10. [License](#license)
+
+## Overview
+
+This Docker setup provides:
+- A complete Spark cluster with a master and two worker nodes
+- Root user access on all containers
+- Example Spark applications in Python and Scala
+- Shared volume for data persistence
+
+**Project Structure**:
+- `Dockerfile`: Creates a Spark image based on Bitnami's Spark image with root permissions
+- `docker-compose.yml`: Configures the complete Spark cluster
+- `examples/`: Contains sample Spark applications for testing
+- `build.sh/build.ps1`: Build scripts for different platforms
+
 ## Quick Start Guide
 
-### What's Included
-- Spark cluster with 1 master and 2 worker nodes
-- Root access enabled on all containers
-- Example Spark applications in Python and Scala
-
-### Build and Run
 ```bash
 # Build the image
 ./build.sh  # On macOS/Linux
@@ -18,236 +44,168 @@ This project creates a Bitnami Spark Docker image that runs with root permission
 
 # Start the cluster
 docker-compose up -d
-```
 
-### Access Information
-- **Spark Web UI**: http://localhost:8080
-- **Spark Master**: spark://spark-master:7077
-- **Worker UIs**: http://localhost:8081, http://localhost:8082
-- **Root Access**: All containers run as root user (no password required)
+# Access the Spark Web UI
+# Open http://localhost:8080 in your browser
 
-### Run an Example
-```bash
 # Enter the master container
 docker exec -it spark-master bash
 
 # Run the Python example
 spark-submit --master spark://spark-master:7077 /opt/bitnami/spark/examples/pyspark_example.py
-```
 
-### Stop the Cluster
-```bash
+# Stop the cluster when done
 docker-compose down
 ```
 
-## Contents
-
-- `Dockerfile`: Creates a Spark image based on Bitnami's Spark image, but with root user permissions
-- `docker-compose.yml`: Sets up a complete Spark cluster with a master and two worker nodes
-- `examples/`: Contains sample Spark applications for testing
+**Access Information**:
+- **Spark Web UI**: http://localhost:8080
+- **Spark Master**: spark://spark-master:7077
+- **Worker UIs**: http://localhost:8081, http://localhost:8082
+- **Root Access**: All containers run as root user (no password required)
 
 ## Prerequisites
 
 - Docker and Docker Compose installed on your machine
 - Git (to clone this repository)
 
-## Getting Started
+## Setup Instructions
 
-### Clone the Repository
+### Building the Image
 
+**Clone the Repository**:
 ```bash
 git clone https://github.com/yourusername/bitnami-root-docker-image.git
 cd bitnami-root-docker-image
 ```
 
-### Platform-Specific Considerations
-
-#### macOS (Intel and Apple Silicon)
-
-For Apple Silicon (M1/M2/M3) Macs:
-- Make sure you're running Docker Desktop 4.6.0 or later
-- In Docker Desktop settings, ensure "Use Rosetta for x86/amd64 emulation on Apple Silicon" is enabled if you need x86 compatibility
-
+**Build the Image**:
 ```bash
-# For Apple Silicon, you may want to specify the platform:
-docker build --platform linux/arm64/v8 -t bitnami-root-spark .
-```
-
-For Intel Macs:
-```bash
-docker build -t bitnami-root-spark .
-```
-
-#### Windows
-
-On Windows, make sure you have:
-- Docker Desktop with WSL 2 backend installed
-- Git Bash, PowerShell, or Windows Command Prompt
-
-Using PowerShell:
-```powershell
-docker build -t bitnami-root-spark .
-```
-
-Using Command Prompt:
-```cmd
-docker build -t bitnami-root-spark .
-```
-
-Using Git Bash:
-```bash
-docker build -t bitnami-root-spark .
-```
-
-## Usage
-
-### Building the Image
-
-To build the Docker image:
-
-```bash
-# Using the provided build script (macOS/Linux)
+# On macOS/Linux
 chmod +x build.sh
 ./build.sh
 
-# Or build directly using Docker
+# On Windows
+.\build.ps1
+
+# Or build directly with Docker
 docker build -t bitnami-root-spark .
 ```
 
-For Windows using PowerShell:
-```powershell
-docker build -t bitnami-root-spark .
-```
+**Platform-Specific Options**:
 
-### Running a Spark Cluster
+| Platform | Considerations | Command |
+|----------|----------------|---------|
+| Apple Silicon | Use Docker Desktop 4.6.0+<br>Enable Rosetta if needed | `docker build --platform linux/arm64/v8 -t bitnami-root-spark .` |
+| Intel Mac | Standard build | `docker build -t bitnami-root-spark .` |
+| Windows | Use Docker Desktop with WSL 2 | `docker build -t bitnami-root-spark .` |
 
-To start a complete Spark cluster with a master and two worker nodes:
+### Running the Cluster
+
+Start the Spark cluster with a master and two worker nodes:
 
 ```bash
-# For all platforms
 docker-compose up -d
 ```
 
-This will create:
-- A Spark master node accessible on port 8080
-- Two Spark worker nodes
+This creates:
+- A Spark master node on port 8080
+- Two Spark worker nodes on ports 8081 and 8082
 - Shared volume for data persistence
 
-### Accessing the Spark Web UI
+### Accessing the Interfaces
 
-Once the cluster is running, you can access the Spark Web UI at:
+- **Spark Master Web UI**: http://localhost:8080
+- **Worker 1 Web UI**: http://localhost:8081
+- **Worker 2 Web UI**: http://localhost:8082
 
-```
-http://localhost:8080
-```
+## Using the Cluster
 
 ### Running Spark Jobs
 
-To run a Spark job on the cluster, you can exec into the master container:
+1. **Connect to the Master Container**:
+   ```bash
+   docker exec -it spark-master bash
+   ```
 
-```bash
-# For macOS/Linux
-docker exec -it spark-master bash
+2. **Submit a Spark Job**:
+   ```bash
+   # Run the included Python example
+   spark-submit --master spark://spark-master:7077 /opt/bitnami/spark/examples/pyspark_example.py
+   
+   # Or run your own application
+   spark-submit --master spark://spark-master:7077 your-application.jar
+   ```
 
-# For Windows PowerShell
-docker exec -it spark-master bash
-```
-
-Then use spark-submit to run your application:
-
-```bash
-# Run the included Python example
-spark-submit --master spark://spark-master:7077 /opt/bitnami/spark/examples/pyspark_example.py
-
-# Or run your own application
-spark-submit --master spark://spark-master:7077 your-application.jar
-```
-
-### Running the Example Applications
+### Running Example Applications
 
 This repository includes example applications in the `examples/` directory:
 
 ```bash
-# Copy the example to the container
+# Copy an example to the container
 docker cp examples/pyspark_example.py spark-master:/opt/bitnami/spark/examples/
 
-# Execute into the container and run the example
-docker exec -it spark-master bash
-spark-submit --master spark://spark-master:7077 /opt/bitnami/spark/examples/pyspark_example.py
+# Run the example
+docker exec -it spark-master bash -c "spark-submit --master spark://spark-master:7077 /opt/bitnami/spark/examples/pyspark_example.py"
 ```
 
-### Stopping the Cluster
-
-To stop the cluster:
-
+To stop the cluster when finished:
 ```bash
-# For all platforms
 docker-compose down
 ```
 
-## Configuration
+## Configuration Options
 
-You can customize the Spark configuration by modifying the environment variables in the `docker-compose.yml` file. Common configurations include:
+Customize Spark by modifying environment variables in `docker-compose.yml`:
 
 ```yaml
 environment:
-  - SPARK_WORKER_MEMORY=2G  # Increase worker memory
-  - SPARK_WORKER_CORES=2    # Increase worker cores
+  - SPARK_WORKER_MEMORY=2G  # Memory allocation for workers
+  - SPARK_WORKER_CORES=2    # CPU cores for workers
   - SPARK_DAEMON_MEMORY=1G  # Memory for Spark daemons
 ```
 
 ## Troubleshooting
 
-### Platform-Specific Issues
+| Issue | Solution |
+|-------|----------|
+| **Port conflicts** | Modify port mappings in `docker-compose.yml` if ports 8080, 7077, or 8081-8082 are in use |
+| **Memory issues** | Reduce worker memory in `docker-compose.yml` if containers fail to start |
+| **Network issues** | Run `docker-compose down --volumes` and then `docker-compose up -d` |
 
-#### Apple Silicon (M1/M2/M3)
+**Platform-Specific Troubleshooting**:
 
-If you encounter architecture compatibility issues:
+**Apple Silicon**:
 ```bash
-# Explicitly specify the platform
+# For ARM64 native build
 docker build --platform linux/arm64/v8 -t bitnami-root-spark .
-```
 
-Or use Rosetta emulation:
-```bash
-# Build for x86 architecture using emulation
+# For x86 compatibility with emulation
 docker build --platform linux/amd64 -t bitnami-root-spark .
 ```
 
-#### Windows Path Issues
-
-If you encounter path-related issues on Windows, make sure to use proper path formats in PowerShell:
+**Windows Path Issues**:
 ```powershell
+# Use proper path format in PowerShell
 docker cp .\examples\pyspark_example.py spark-master:/opt/bitnami/spark/examples/
 ```
 
-### Common Issues
+## Notes and Security Considerations
 
-- **Port conflicts**: If ports 8080, 7077, or 8081-8082 are already in use, modify the port mappings in the `docker-compose.yml` file.
-- **Memory issues**: If containers fail to start due to memory constraints, reduce the worker memory in `docker-compose.yml`.
-- **Network issues**: If containers can't communicate, try recreating the network with `docker-compose down --volumes` and then `docker-compose up -d`.
-
-## Notes
-
-- This image runs Spark as the root user, which may introduce security concerns in production environments
-- For production deployments, consider using the standard non-root Bitnami images with proper configuration
+- This image runs Spark as the root user for development/testing convenience
+- Not recommended for production use due to security implications
+- For production, use standard non-root Bitnami images with proper configuration
 
 ## Performance Tuning
 
-### Resource Allocation
-
-Modify `docker-compose.yml` to allocate appropriate resources based on your host machine:
-
+**Resource Allocation**:
 ```yaml
 environment:
-  - SPARK_WORKER_MEMORY=4G
-  - SPARK_WORKER_CORES=2
+  - SPARK_WORKER_MEMORY=4G  # Allocate more memory to workers
+  - SPARK_WORKER_CORES=2    # Allocate more CPU cores
 ```
 
-### Volume Mounting
-
-For better performance, especially with large datasets:
-
+**Volume Mounting for Better Performance**:
 ```yaml
 volumes:
   - ./data:/data:cached  # Improves performance on macOS
