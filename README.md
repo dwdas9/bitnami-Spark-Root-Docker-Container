@@ -18,7 +18,8 @@ This project creates a Bitnami Spark Docker image that runs with root permission
 7. [Troubleshooting](#troubleshooting)
 8. [Notes and Security Considerations](#notes-and-security-considerations)
 9. [Performance Tuning](#performance-tuning)
-10. [License](#license)
+10. [Using with Visual Studio Code](#using-with-visual-studio-code)
+11. [License](#license)
 
 ## Overview
 
@@ -210,3 +211,133 @@ environment:
 volumes:
   - ./data:/data:cached  # Improves performance on macOS
 ```
+
+## Using with Visual Studio Code
+
+To use this setup with Visual Studio Code, you can attach the debugger to the Spark application running inside the Docker container. Here's how:
+
+1. **Open the Project in Visual Studio Code**.
+2. **Install the "Remote - Containers" Extension** if you haven't already.
+3. **Add a Debug Configuration**:
+   - Go to the Debug view (Ctrl+Shift+D).
+   - Click on "create a launch.json file".
+   - Select "Python" or "Java" depending on your application.
+4. **Configure the Debugger**:
+   - Set the remote path to your application in the container.
+   - Set the port to 5678 (or any other port you configure).
+5. **Start Debugging**:
+   - Run your Spark application with the debugger attached.
+   - The debugger will pause on breakpoints, and you can inspect variables, step through code, etc.
+
+For more detailed instructions, refer to the [Visual Studio Code documentation](https://code.visualstudio.com/docs/remote/containers).
+
+VS Code provides excellent support for working with Spark through Jupyter notebooks. Here's how to connect VS Code to your Spark cluster and create interactive notebooks.
+
+### Prerequisites
+
+1. Install the following VS Code extensions:
+   - Python
+   - Jupyter
+   - Remote - Containers (optional, for container development)
+
+2. Install the required Python packages in your local environment:
+   ```bash
+   pip install pyspark findspark jupyter
+   ```
+
+### Connecting to the Spark Cluster
+
+1. **Start the Spark Cluster**:
+   ```bash
+   docker-compose up -d
+   ```
+
+2. **Create a New Jupyter Notebook in VS Code**:
+   - Open VS Code
+   - Select File > New File > Jupyter Notebook
+   - Save the notebook with a `.ipynb` extension
+
+3. **Configure the Notebook to Connect to Spark**:
+   Add the following code to the first cell of your notebook:
+
+   ```python
+   import findspark
+   findspark.init()
+   
+   from pyspark.sql import SparkSession
+   
+   # Create a Spark session connected to your Docker cluster
+   spark = SparkSession.builder \
+       .appName("VSCode Notebook") \
+       .master("spark://localhost:7077") \
+       .config("spark.driver.memory", "1g") \
+       .getOrCreate()
+   
+   # Verify connection
+   print(f"Spark version: {spark.version}")
+   print(f"Spark UI: {spark.sparkContext.uiWebUrl}")
+   ```
+
+### Creating a Sample Notebook
+
+Here's an example of a simple notebook to test your Spark connection:
+
+1. **Create and Connect to Spark**:
+   ```python
+   import findspark
+   findspark.init()
+   
+   from pyspark.sql import SparkSession
+   
+   spark = SparkSession.builder \
+       .appName("Sample Notebook") \
+       .master("spark://localhost:7077") \
+       .config("spark.driver.memory", "1g") \
+       .getOrCreate()
+   ```
+
+2. **Create a Simple DataFrame**:
+   ```python
+   # Create a sample DataFrame
+   data = [("Alice", 34), ("Bob", 45), ("Charlie", 29)]
+   df = spark.createDataFrame(data, ["Name", "Age"])
+   
+   # Display the DataFrame
+   df.show()
+   ```
+
+3. **Perform Some Transformations**:
+   ```python
+   # Perform some transformations
+   from pyspark.sql.functions import col
+   
+   result = df.filter(col("Age") > 30).select("Name", col("Age").alias("Age_Over_30"))
+   result.show()
+   ```
+
+4. **Stop the Spark Session When Finished**:
+   ```python
+   # Always stop the session when done
+   spark.stop()
+   ```
+
+### Troubleshooting VS Code Connections
+
+| Issue | Solution |
+|-------|----------|
+| **Connection refused** | Ensure the Spark cluster is running and ports are correctly mapped |
+| **Driver memory errors** | Adjust `spark.driver.memory` in your SparkSession configuration |
+| **Package not found** | Install missing packages with `pip install` or in your notebook with `!pip install` |
+
+### Advanced: Using Spark Submit from VS Code
+
+You can also run `.py` files with Spark Submit directly from VS Code's terminal:
+
+1. Create a Python file (e.g., `spark_analysis.py`)
+2. Open VS Code's integrated terminal
+3. Run:
+   ```bash
+   docker exec -it spark-master bash -c "spark-submit --master spark://spark-master:7077 /path/to/spark_analysis.py"
+   ```
+
+## License
