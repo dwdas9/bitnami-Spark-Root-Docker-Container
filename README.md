@@ -210,7 +210,3 @@ environment:
 volumes:
   - ./data:/data:cached  # Improves performance on macOS
 ```
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
