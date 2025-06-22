@@ -1,31 +1,31 @@
-FROM bitnami/spark:latest
+# Use the official Bitnami Spark image as the base image
+# To use the latest version just replace the line below with FROM bitnami/spark:latest
+FROM bitnami/spark:3.5
 
+# Switch to root user to install necessary packages and set permissions
 USER root
 
-# Allow running as root user
-ENV ALLOW_DAEMON_USER_ROOT=true
+# Install sudo package
+RUN apt-get update && apt-get install -y sudo
 
-# Set environment variables
-ENV SPARK_HOME=/opt/bitnami/spark
-ENV PATH=$SPARK_HOME/bin:$PATH
+# Add a non-root user named dwdas with a home directory and bash shell
+RUN useradd -ms /bin/bash dwdas
 
-# Additional configuration to ensure root can run everything
-RUN chmod -R g+rwX /opt/bitnami
+# Set the password for dwdas as Passw0rd
+RUN echo "dwdas:Passw0rd" | chpasswd
 
-# Expose Spark Web UI port
-EXPOSE 8080
+# Add the user to the sudo group and configure sudoers file to allow passwordless sudo
+RUN adduser dwdas sudo
+RUN echo "dwdas ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-# Expose Spark master port
-EXPOSE 7077
+# Ensure dwdas has write permissions to necessary directories and files
+RUN mkdir -p /opt/bitnami/spark/tmp && chown -R dwdas:dwdas /opt/bitnami/spark/tmp
+RUN chown -R dwdas:dwdas /opt/bitnami/spark/conf
+RUN chown -R dwdas:dwdas /opt/bitnami/spark/work
+RUN chown -R dwdas:dwdas /opt/bitnami/spark/logs
 
-# Expose Spark driver port
-EXPOSE 4040
-
-# Expose worker ports
-EXPOSE 8081 8082
+# Switch back to the non-root user
+USER dwdas
 
 # Set the working directory
-WORKDIR $SPARK_HOME
-
-# Command to run when the container starts
-CMD ["bash", "-c", "spark-class org.apache.spark.deploy.master.Master"]
+WORKDIR /home/dwdas
